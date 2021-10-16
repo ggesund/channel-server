@@ -9,13 +9,15 @@ const {
   uploadImage,
   getImage,
   getAllImages,
+  deleteImage,
+  getIdAndName,
 } = require('../controllers/imageController');
 
 // routes for images
 router.post('/upload', upload.single('file'), uploadImage);
 router.get('/', getAllImages);
+router.get('/idandname', getIdAndName);
 router.get('/:imageId', getImage);
-
-// router.delete('/:filename', deleteImage);
+router.delete('/:imageId', deleteImage);
 
 module.exports = router;

@@ -5,6 +5,7 @@ let router = express.Router();
 // import the controllers
 const {
   getChannels,
+  getChannelsWithImages,
   createChannel,
 } = require('../controllers/channelController');
 
@@ -18,6 +19,7 @@ router.use((req, res, next) => {
 // get all channels
 // GET /api/channel
 router.get('/', getChannels);
+router.get('/withimages', getChannelsWithImages);
 
 // create a new channel
 // POST /api/channel

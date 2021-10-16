@@ -3,7 +3,9 @@ const Channel = require('../models/Channel');
 exports.getChannels = async (req, res) => {
   // code for getting the channels
   try {
-    let allChannels = await Channel.find({});
+    let allChannels = await Channel.find({})
+      .populate('image', 'originalName')
+      .sort({ name: 1 });
 
     res.json({
       status: 'ok',
@@ -14,6 +16,26 @@ exports.getChannels = async (req, res) => {
     res.status(400).json({
       status: 'nok',
       msg: 'Can not get all channels.',
+    });
+  }
+};
+
+exports.getChannelsWithImages = async (req, res) => {
+  // code for getting the channels
+  try {
+    let allChannels = await Channel.find({})
+      .populate('image')
+      .sort({ name: 1 });
+
+    res.json({
+      status: 'ok',
+      data: allChannels,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({
+      status: 'nok',
+      msg: 'Can not get all channels with images.',
     });
   }
 };

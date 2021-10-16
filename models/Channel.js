@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+const { ObjectId } = mongoose.Schema;
+
 const { Schema } = mongoose;
 
 const channelSchema = new Schema(
@@ -40,10 +42,13 @@ const channelSchema = new Schema(
       type: String,
       trim: true,
     },
-    img: {
-      type: Buffer,
-      contentType: String,
+    image: {
+      type: ObjectId,
+      ref: 'Image',
     },
+    // Referenz zu jeder Liste, in der der Kanal verwendet wird, ist wichtig
+    // wenn man Kanal löscht und er wird noch verwendet
+    // usedInLists: [{ type: ObjectId, ref: 'ChannelList' }],
   },
   {
     timestamps: true,
