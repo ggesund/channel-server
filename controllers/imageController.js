@@ -5,12 +5,12 @@ const path = require('path');
 const Image = require('../models/Image');
 // CREATE
 // upload an image to MongoDB
-// image must exist on filesystem first (is done with multer middleware)
+// image exists only in memory (req.file.buffer)
 exports.uploadImage = async (req, res) => {
   console.log('uploadImage controller touched.');
 
-  console.log('File', req.file);
-  console.log('Body', req.body);
+  // console.log('File', req.file);
+  // console.log('Body', req.body);
 
   if (req.file === undefined) {
     return res.send('You must select a file');
@@ -18,24 +18,17 @@ exports.uploadImage = async (req, res) => {
 
   try {
     const newImage = {
-      fileName: req.file.filename.toLowerCase(),
+      fileName: 'Not used',
       originalName: req.body.fileName.toLowerCase(),
       desc: req.body.description,
       dimension: req.body.dimension,
       img: {
-        data: fs.readFileSync(req.file.path),
+        data: req.file.buffer,
         contentType: req.file.mimetype,
       },
     };
 
     const uploadedImage = await new Image(newImage).save();
-
-    // delete image from filesystem immediately after upload to DB --> carbage collection
-    fs.unlink(`./public/images/${uploadedImage.fileName}`, (err) => {
-      if (err) {
-        throw new Error('Can not delete file from filesystem');
-      }
-    });
 
     res.json(uploadedImage);
   } catch (error) {
@@ -45,7 +38,22 @@ exports.uploadImage = async (req, res) => {
 };
 
 // READ single Image
-exports.getImage = (req, res) => {};
+exports.getImage = async (req, res) => {
+  const imageId = req.params.imageId;
+
+  // console.log('ImageId: ', imageId);
+
+  try {
+    const foundImage = await Image.findById(imageId);
+
+    // console.log(foundImage);
+
+    res.json(foundImage);
+  } catch (error) {
+    console.log(error);
+    res.status(400).send(`Can not find image with id ${imageId}`);
+  }
+};
 
 // READ all images
 exports.getAllImages = async (req, res) => {
@@ -59,6 +67,47 @@ exports.getAllImages = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(400).send('Can not get all images.');
+  }
+};
+
+// UPDATE an image
+exports.updateImage = async (req, res) => {
+  const imageId = req.params.imageId;
+  console.log('req.body', req.body.description);
+
+  try {
+    if (req.file) {
+      const modifiedImage = {
+        fileName: 'Not used',
+        originalName: req.body.originalName.toLowerCase(),
+        desc: req.body.description,
+        dimension: req.body.dimension,
+        img: {
+          data: req.file.buffer,
+          contentType: req.file.mimetype,
+        },
+      };
+
+      const updatedImage = await Image.findByIdAndUpdate(
+        imageId,
+        modifiedImage,
+        { new: true }
+      ).select('originalName');
+
+      res.json({ result: 'ok', data: JSON.stringify(updatedImage) });
+    } else {
+      // nur die Beschreibung aktualisieren
+      const updatedImage = await Image.findByIdAndUpdate(
+        imageId,
+        { desc: req.body.description },
+        { new: true }
+      );
+
+      res.json({ result: 'ok', data: updatedImage });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).send('Can not update the image.');
   }
 };
 
